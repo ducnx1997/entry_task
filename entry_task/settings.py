@@ -128,22 +128,45 @@ STATIC_URL = '/static/'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
+        },
+    },
     'handlers': {
-        'file': {
+        'info_logfile': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': './debug.log',
+            'filename': './logs/info.log',
+            'formatter': 'standard'
+
         },
-        # 'console': {
-        #     'class': 'logging.StreamHandler',
-        # },
+        'debug_logfile': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': './logs/debug.log',
+            'formatter': 'standard'
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
     },
     'loggers': {
         'django': {
-            # 'handlers': ['DEBUGconsole'],
-            # 'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'handlers': ['file'],
-            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'WARN',
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'entry_task': {
+            'handlers': ['console', 'info_logfile', 'debug_logfile'],
             'propagate': True,
         },
     },

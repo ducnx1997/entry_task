@@ -5,3 +5,4 @@ test_files
 my.cnf
 *.pyc
 test_scripts
+logs
