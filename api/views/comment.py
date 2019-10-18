@@ -13,6 +13,28 @@ from ..models import Event, Comment, Activities
 
 
 @login_required
+def get_comment(request, user, comment_id):
+    try:
+        comment_id = int(comment_id)
+        comment = Comment.objects.get(id=comment_id)
+    except ValueError:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
+    except models.ObjectDoesNotExist:
+        return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
+
+    return JsonResponse({
+        'status': 'SUCCESS',
+        'payload': {
+            'event_id': comment.event_id,
+            'comment_id': comment_id,
+            'body': comment.body,
+            'user_id': user['id'],
+            'username': user['username']
+        }
+    })
+
+
+@login_required
 def get_comments(request, user, event_id):
     try:
         event_id = int(event_id)
@@ -22,7 +44,10 @@ def get_comments(request, user, event_id):
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
-    comments = list(Comment.objects.filter(event_id=event_id).values('id', 'user_id', 'created_at', 'body'))
+    comments = Comment.objects.filter(event_id=event_id)\
+        .values('id', 'user_id', 'created_at', 'body', 'username', 'user_id')
+
+    comments = list(comments)
 
     return JsonResponse(
         {
@@ -48,6 +73,7 @@ def comment_event(request, user, event_id):
     new_comment = Comment.objects.create(
         event_id=event.id,
         user_id=user['id'],
+        username=user['username'],
         body=comment_body,
         created_at=time.time(),
         modified_at=time.time()
@@ -55,6 +81,7 @@ def comment_event(request, user, event_id):
 
     Activities.objects.create(
         event_id=event.id,
+        event_title=event.title,
         user_id=user['id'],
         details=new_comment.body,
         action='COMMENT',
@@ -66,7 +93,9 @@ def comment_event(request, user, event_id):
         'status': 'SUCCESS',
         'payload': {
             'event_id': new_comment.event_id,
+            'event_title': event.title,
             'user_id': new_comment.user_id,
+            'username': new_comment.username,
             'body': new_comment.body,
             'created_at': new_comment.created_at
         }

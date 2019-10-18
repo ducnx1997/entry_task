@@ -7,6 +7,7 @@ from django.db import models
 class User(models.Model):
     username = models.CharField(max_length=32)
     salt = models.CharField(max_length=8)
+    email = models.CharField(max_length=128)
     password_hash = models.CharField(max_length=64)
     is_admin = models.BooleanField(default=False)
     created_at = models.BigIntegerField()
@@ -31,6 +32,7 @@ class Event(models.Model):
 class Participation(models.Model):
     event_id = models.BigIntegerField()
     user_id = models.BigIntegerField()
+    username = models.CharField(max_length=32)
     created_at = models.BigIntegerField()
     modified_at = models.BigIntegerField()
 
@@ -51,6 +53,7 @@ class EventImage(models.Model):
 class Like(models.Model):
     event_id = models.BigIntegerField()
     user_id = models.BigIntegerField()
+    username = models.CharField(max_length=32)
     created_at = models.BigIntegerField()
     modified_at = models.BigIntegerField()
 
@@ -61,6 +64,7 @@ class Like(models.Model):
 class Comment(models.Model):
     event_id = models.BigIntegerField()
     user_id = models.BigIntegerField()
+    username = models.CharField(max_length=32)
     body = models.TextField()
     created_at = models.BigIntegerField()
     modified_at = models.BigIntegerField()
@@ -72,6 +76,7 @@ class Comment(models.Model):
 class Activities(models.Model):
     action = models.CharField(max_length=16)
     event_id = models.BigIntegerField()
+    event_title = models.CharField(max_length=256)
     user_id = models.BigIntegerField()
     created_at = models.BigIntegerField()
     modified_at = models.BigIntegerField()

@@ -10,6 +10,8 @@ from django.core.cache import cache
 from django.db import models
 from django.http import JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 from ..common import validate_username, common_response, random_salt, validate_password_hash, \
     validate_salt, random_session
@@ -25,7 +27,7 @@ def login_required(view_function):
             return JsonResponse(common_response.LOGIN_REQUIRED)
 
         user = cache.get(request.COOKIES.get('session_id'))
-        if user['id']:
+        if user:
             return view_function(*args, user=user, **kwargs)
 
         return JsonResponse(common_response.LOGIN_REQUIRED)
@@ -58,17 +60,26 @@ def complete_signup(request):
         username = str(request.POST['username'])
         password_hash = str(request.POST['password_hash'])
         salt = str(request.POST['salt'])
+        email = str(request.POST['email'])
     except (MultiValueDictKeyError, ValueError):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
     if User.objects.filter(username=username).exists():
         return JsonResponse(common_response.USERNAME_EXISTS_RESPONSE)
 
+    if User.objects.filter(email=email).exists():
+        return JsonResponse(common_response.EMAIL_USED_RESPONSE)
+
     # TODO use password_hash from user instead
     password_hash = hashlib.md5(username + salt).hexdigest()
 
     if not validate_username(username):
         return JsonResponse(common_response.INVALID_USERNAME_RESPONSE)
+
+    try:
+        validate_email(email)
+    except ValidationError:
+        return JsonResponse(common_response.INVALID_EMAIL_RESPONSE)
 
     if not validate_password_hash(password_hash):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)

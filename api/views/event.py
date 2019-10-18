@@ -89,6 +89,9 @@ def create_event(request, user):
         tag = str(request.POST['tag'])
         files = request.FILES.getlist('img')
     except (ValueError, MultiValueDictKeyError) as e:
+        print(1)
+        print(request.POST['title'])
+        print(e)
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
     new_event = Event.objects.create(

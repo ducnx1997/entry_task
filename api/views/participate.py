@@ -21,7 +21,10 @@ def get_participants(request, user, event_id):
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
-    participants = list(Participation.objects.filter(event_id=event_id).values('user_id', 'created_at'))
+    participants = Participation.objects.filter(event_id=event_id)\
+        .values('user_id', 'created_at', 'username')
+
+    participants = list(participants)
 
     return JsonResponse(
         {
@@ -52,12 +55,14 @@ def participate_event(request, user, event_id):
         participation = Participation.objects.create(
             event_id=event.id,
             user_id=user['id'],
+            username=user['username'],
             created_at=time.time(),
             modified_at=time.time()
         )
         Activities.objects.update_or_create(
             action='PARTICIPATION',
             event_id=participation.event_id,
+            event_title=event.title,
             user_id=participation.user_id,
             details='',
             created_at=time.time(),
@@ -69,8 +74,8 @@ def participate_event(request, user, event_id):
         'payload': {
             'event_id': participation.event_id,
             'user_id': participation.user_id,
-            'created_at': participation.created_at,
-            'modified_at': participation.modified_at
+            'username': participation.username,
+            'created_at': participation.created_at
         }
     })
 

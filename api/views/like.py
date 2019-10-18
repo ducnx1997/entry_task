@@ -21,7 +21,10 @@ def get_likes(request, user, event_id):
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
-    likes = list(Like.objects.filter(event_id=event_id).values('user_id', 'created_at'))
+    likes = Like.objects.filter(event_id=event_id)\
+        .values('event_id', 'user_id', 'username', 'created_at')
+
+    likes = list(likes)
 
     return JsonResponse(
         {
@@ -52,12 +55,14 @@ def like_event(request, user, event_id):
         like = Like.objects.create(
             event_id=event.id,
             user_id=user['id'],
+            username=user['username'],
             created_at=time.time(),
             modified_at=time.time()
         )
         Activities.objects.update_or_create(
             action='LIKE',
             event_id=like.event_id,
+            event_title=event.title,
             user_id=like.user_id,
             details='',
             created_at=time.time(),
@@ -67,7 +72,9 @@ def like_event(request, user, event_id):
     return JsonResponse({
         'status': 'SUCCESS',
         'payload': {
+            'event_id': event.id,
             'user_id': like.user_id,
+            'username': like.username,
             'created_at': like.created_at
         }
     })

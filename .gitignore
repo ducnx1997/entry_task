@@ -4,3 +4,4 @@ test_files
 .idea/
 my.cnf
 *.pyc
+test_scripts
