@@ -16,11 +16,11 @@ def get_user(request):
 
 
 def validate_username(username):
-    return isinstance(username, basestring) and len(username) > 4 and username.isalnum()
+    return isinstance(username, basestring) and 4 < len(username) < 33 and username.isalnum()
 
 
 def validate_salt(salt):
-    return isinstance(salt, basestring) and len(salt) > 5 and salt.isalnum()
+    return isinstance(salt, basestring) and len(salt) == 8 and salt.isalnum()
 
 
 def validate_password_hash(password_hash):
