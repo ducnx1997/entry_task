@@ -45,6 +45,7 @@ def login_required(view_function):
 def signup(request):
     try:
         username = str(request.POST['username'])
+        email = str(request.POST['email'])
     except (MultiValueDictKeyError, ValueError):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
@@ -53,6 +54,9 @@ def signup(request):
 
     if User.objects.filter(username=username).exists():
         return JsonResponse(common_response.USERNAME_EXISTS_RESPONSE)
+
+    if User.objects.filter(email=email).exists():
+        return JsonResponse(common_response.EMAIL_USED_RESPONSE)
 
     return JsonResponse({
         'status': 'SUCCESS',
@@ -97,6 +101,7 @@ def complete_signup(request):
     new_user = User.objects.create(
         username=username,
         password_hash=password_hash,
+        email=email,
         salt=salt,
         created_at=int(time.time()),
         modified_at=int(time.time())
@@ -108,6 +113,7 @@ def complete_signup(request):
             'user': {
                 'user_id': new_user.id,
                 'username': new_user.username,
+                'email': new_user.email,
                 'password_hash': password_hash,
                 'salt': salt,
                 'created_at': new_user.created_at,
