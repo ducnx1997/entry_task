@@ -127,7 +127,7 @@ STATIC_URL = '/static/'
 # LOGGING
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'standard': {
             'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
@@ -148,6 +148,18 @@ LOGGING = {
             'filename': './logs/debug.log',
             'formatter': 'standard'
         },
+        'error_logfile': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': './logs/error.log',
+            'formatter': 'standard'
+        },
+        'warn_logfile': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': './logs/warn.log',
+            'formatter': 'standard'
+        },
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
@@ -166,8 +178,9 @@ LOGGING = {
             'propagate': False,
         },
         'entry_task': {
-            'handlers': ['console', 'info_logfile', 'debug_logfile'],
-            'propagate': True,
+            'handlers': ['info_logfile', 'debug_logfile', 'warn_logfile'],
+            'propagate': False,
+            'level': 'INFO'
         },
     },
 }

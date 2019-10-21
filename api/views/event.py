@@ -15,6 +15,9 @@ from django.utils.datastructures import MultiValueDictKeyError
 from auth import login_required
 from ..common import common_response
 from ..models import Event, User, EventImage
+import logging
+
+log = logging.getLogger('entry_task')
 
 
 @login_required
