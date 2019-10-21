@@ -23,10 +23,10 @@ def login_required(view_function):
     @wraps(view_function)
     def wrap(*args, **kwargs):
         request = args[0]
-        if 'session_id' not in request.POST:
+        if 'session_id' not in request.COOKIES:
             return JsonResponse(common_response.LOGIN_REQUIRED)
 
-        user = cache.get(request.POST.get('session_id'))
+        user = cache.get(request.COOKIES.get('session_id'))
         if user:
             return view_function(*args, user=user, **kwargs)
 
