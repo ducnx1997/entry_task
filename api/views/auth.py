@@ -34,7 +34,7 @@ def login_required(view_function):
 
         user = cache.get(request.COOKIES.get('session_id'))
         if user:
-            log.info('user {} logged in'.format(user.id))
+            log.info('user {} logged in'.format(user))
             return view_function(*args, user=user, **kwargs)
 
         return JsonResponse(common_response.LOGIN_REQUIRED)
@@ -78,7 +78,7 @@ def complete_signup(request):
         return JsonResponse(common_response.EMAIL_USED_RESPONSE)
 
     # TODO use password_hash from user instead
-    password_hash = hashlib.md5(username + salt).hexdigest()
+    # password_hash = hashlib.md5(username + salt).hexdigest()
 
     if not validate_username(username):
         return JsonResponse(common_response.INVALID_USERNAME_RESPONSE)
@@ -165,9 +165,14 @@ def complete_login(request):
         settings.SESSION_TIMEOUT
     )
 
-    return JsonResponse({
+    res = JsonResponse({
         'status': 'SUCCESS',
         'payload': {
             'session_id': session_id
         }
     })
+
+    res.set_cookie('session_id', session_id, httponly=True)
+
+    return res
+
