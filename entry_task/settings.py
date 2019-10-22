@@ -25,7 +25,7 @@ SECRET_KEY = '@l2crxfrw7=q9m^!5)l7)v2%mo930tz&f4__$&5g-twy3z2hvh'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.33.10', 'localhost']
 
 
 # Application definition
@@ -199,6 +199,6 @@ MEDIA_ROOT = './images'
 
 
 # GLOBAL VARIABLES
-SESSION_TIMEOUT = 3000
+SESSION_TIMEOUT = 3000000
 MAX_EVENT_SEARCH_TIME_RANGE = 3000000
 NUM_OF_EVENTS_PER_PAGE = 2

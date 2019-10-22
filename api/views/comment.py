@@ -7,11 +7,12 @@ from django.db import models
 from django.http import JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
 
-from auth import login_required
+from auth import login_required, log_request
 from ..common import common_response
 from ..models import Event, Comment, Activities
 
 
+@log_request
 @login_required
 def get_comment(request, user, comment_id):
     try:
@@ -34,6 +35,7 @@ def get_comment(request, user, comment_id):
     })
 
 
+@log_request
 @login_required
 def get_comments(request, user, event_id):
     try:

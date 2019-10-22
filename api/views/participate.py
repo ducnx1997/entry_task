@@ -6,11 +6,12 @@ import time
 from django.db import models
 from django.http import JsonResponse
 
-from auth import login_required
+from auth import login_required, log_request
 from ..common import common_response
 from ..models import Event, Activities, Participation
 
 
+@log_request
 @login_required
 def get_participants(request, user, event_id):
     try:
@@ -36,6 +37,7 @@ def get_participants(request, user, event_id):
     )
 
 
+@log_request
 @login_required
 def participate_event(request, user, event_id):
     try:

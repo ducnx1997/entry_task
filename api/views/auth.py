@@ -28,7 +28,6 @@ def login_required(view_function):
     @wraps(view_function)
     def wrap(*args, **kwargs):
         request = args[0]
-        log.info('{}|COOKIES:{}|POST:{}'.format(request, request.COOKIES, request.POST))
         if 'session_id' not in request.COOKIES:
             return JsonResponse(common_response.LOGIN_REQUIRED)
 
@@ -42,6 +41,16 @@ def login_required(view_function):
     return wrap
 
 
+def log_request(view_function):
+
+    def wrap(*args, **kwargs):
+        log.info('{}|COOKIES:{}|POST:{}'.format(args[0], args[0].COOKIES, args[0].POST))
+        return view_function(*args, **kwargs)
+
+    return wrap
+
+
+@log_request
 def signup(request):
     try:
         username = str(request.POST['username'])
@@ -66,6 +75,7 @@ def signup(request):
     })
 
 
+@log_request
 def complete_signup(request):
     try:
         username = str(request.POST['username'])
@@ -123,6 +133,7 @@ def complete_signup(request):
     })
 
 
+@log_request
 def login(request):
     try:
         username = str(request.POST['username'])
@@ -140,6 +151,7 @@ def login(request):
     })
 
 
+@log_request
 def complete_login(request):
     try:
         username = str(request.POST['username'])

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS event_tab (
     modified_at BIGINT UNSIGNED NOT NULL,
 
     INDEX (event_datetime),
-    INDEX (tag)
+    INDEX (tag, event_datetime)
 );
 
 CREATE TABLE IF NOT EXISTS event_image_mapping_tab (

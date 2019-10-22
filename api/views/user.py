@@ -4,11 +4,12 @@ from __future__ import unicode_literals
 from django.db import models
 from django.http import JsonResponse
 
-from auth import login_required
+from auth import login_required, log_request
 from ..common import common_response
 from ..models import User, Activities
 
 
+@log_request
 @login_required
 def get_user_info(request, user, target_id):
     try:
@@ -29,6 +30,7 @@ def get_user_info(request, user, target_id):
     })
 
 
+@log_request
 @login_required
 def get_user_activities(request, user, target_id):
     activities = Activities.objects\

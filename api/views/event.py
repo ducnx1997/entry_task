@@ -12,7 +12,7 @@ from django.db import models
 from django.http import JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
 
-from auth import login_required
+from auth import login_required, log_request
 from ..common import common_response
 from ..models import Event, User, EventImage
 import logging
@@ -20,6 +20,7 @@ import logging
 log = logging.getLogger('entry_task')
 
 
+@log_request
 @login_required
 def get_event(request, user, event_id):
     try:
@@ -46,6 +47,7 @@ def get_event(request, user, event_id):
     })
 
 
+@log_request
 @login_required
 def get_events(request, user, page_id=1):
     events = Event.objects
@@ -78,6 +80,7 @@ def get_events(request, user, page_id=1):
     })
 
 
+@log_request
 @login_required
 def create_event(request, user):
     user = User.objects.get(id=user['id'])
