@@ -33,7 +33,7 @@ def login_required(view_function):
 
         user = cache.get(request.COOKIES.get('session_id'))
         if user:
-            log.info('user {} logged in'.format(user))
+            # log.info('user {} logged in'.format(user))
             return view_function(*args, user=user, **kwargs)
 
         return JsonResponse(common_response.LOGIN_REQUIRED)

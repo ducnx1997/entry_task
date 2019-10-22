@@ -56,14 +56,15 @@ def get_events(request, user, page_id=1):
         page_id = int(page_id)
         if 'tag' in request.POST:
             events = events.filter(tag=request.POST['tag'])
-        if 'start_date' in request.POST:
-            events = events.filter(event_datetime__gte=int(request.POST['start_date']))
-        if 'end_date' in request.POST:
-            events = events.filter(event_datetime__lte=int(request.POST['end_date']))
-
         if 'start_date' in request.POST and 'end_date' in request.POST:
             if int(request.POST['end_date']) - int(request.POST['start_date']) > settings.MAX_EVENT_SEARCH_TIME_RANGE:
                 return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
+            events = events.filter(
+                event_datetime__gte=int(request.POST['start_date']),
+                eventevent_datetime__lte=int(request.POST['end_date']))
+        if 'start_date' in request.POST or 'end_date' in request.POST:
+            return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
+
     except (ValueError, MultiValueDictKeyError):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
@@ -99,9 +100,6 @@ def create_event(request, user):
         tag = str(request.POST['tag'])
         files = request.FILES.getlist('img')
     except (ValueError, MultiValueDictKeyError) as e:
-        print(1)
-        print(request.POST['title'])
-        print(e)
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
     new_event = Event.objects.create(
