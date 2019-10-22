@@ -60,7 +60,11 @@ def get_events(request, user, page_id=1):
             events = events.filter(event_datetime__gte=int(request.POST['start_date']))
         if 'end_date' in request.POST:
             events = events.filter(event_datetime__lte=int(request.POST['end_date']))
-    except ValueError:
+
+        if 'start_date' in request.POST and 'end_date' in request.POST:
+            if int(request.POST['end_date']) - int(request.POST['start_date']) > settings.MAX_EVENT_SEARCH_TIME_RANGE:
+                return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
+    except (ValueError, MultiValueDictKeyError):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
     events = events.order_by('-event_datetime')

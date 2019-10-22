@@ -165,6 +165,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
+        'db_logfile': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': './logs/db.log',
+            'formatter': 'standard'
+        }
     },
     'loggers': {
         'django': {
@@ -173,7 +179,7 @@ LOGGING = {
             'level': 'WARN',
         },
         'django.db.backends': {
-            'handlers': ['console'],
+            'handlers': ['console', 'db_logfile'],
             'level': 'DEBUG',
             'propagate': False,
         },
@@ -201,4 +207,4 @@ MEDIA_ROOT = './images'
 # GLOBAL VARIABLES
 SESSION_TIMEOUT = 3000000
 MAX_EVENT_SEARCH_TIME_RANGE = 3000000
-NUM_OF_EVENTS_PER_PAGE = 2
+NUM_OF_EVENTS_PER_PAGE = 10
