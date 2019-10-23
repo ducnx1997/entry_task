@@ -1,55 +1,45 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import hashlib
+import logging
 import time
-from functools import wraps
 
-from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import models
 from django.http import JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 
-from ..common import validate_username, common_response, random_salt, validate_password_hash, \
-    validate_salt, random_session
-from ..models import User
+import constant
+from api.models import User
+from common import common_response
+from common.auth import log_request
+from common.common_lib import random_session, random_salt
+from common.validator import validate_username, validate_password_hash, validate_salt
 
-import logging
-
+from common.validator import validate_schema
 
 log = logging.getLogger('entry_task')
 
 
-def login_required(view_function):
-
-    @wraps(view_function)
-    def wrap(*args, **kwargs):
-        request = args[0]
-        if 'session_id' not in request.COOKIES:
-            return JsonResponse(common_response.LOGIN_REQUIRED)
-
-        user = cache.get(request.COOKIES.get('session_id'))
-        if user:
-            # log.info('user {} logged in'.format(user))
-            return view_function(*args, user=user, **kwargs)
-
-        return JsonResponse(common_response.LOGIN_REQUIRED)
-
-    return wrap
+signup_form = {
+    'type': 'object',
+    'properties': {
+        'username': {
+            'type': 'string',
+            'minLength': 4,
+            'maxLength': 32
+        },
+        'email': {
+            'type': 'string',
+            'format': 'email'
+        }
+    }
+}
 
 
-def log_request(view_function):
-
-    def wrap(*args, **kwargs):
-        log.info('{}|COOKIES:{}|POST:{}'.format(args[0], args[0].COOKIES, args[0].POST))
-        return view_function(*args, **kwargs)
-
-    return wrap
-
-
+@validate_schema(schema=signup_form)
 @log_request
 def signup(request):
     try:
@@ -57,6 +47,7 @@ def signup(request):
         email = str(request.POST['email'])
     except (MultiValueDictKeyError, ValueError):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
+
 
     if not validate_username(username):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
@@ -180,7 +171,7 @@ def complete_login(request):
             'id': user.id,
             'username': user.username
         },
-        settings.SESSION_TIMEOUT
+        constant.SESSION_TIMEOUT
     )
 
     res = JsonResponse({

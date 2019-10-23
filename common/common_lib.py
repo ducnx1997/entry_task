@@ -15,18 +15,6 @@ def get_user(request):
     return user_id
 
 
-def validate_username(username):
-    return isinstance(username, basestring) and 4 < len(username) < 33 and username.isalnum()
-
-
-def validate_salt(salt):
-    return isinstance(salt, basestring) and len(salt) == 8 and salt.isalnum()
-
-
-def validate_password_hash(password_hash):
-    return isinstance(password_hash, basestring) and len(password_hash) == 32 and all(x in string.hexdigits for x in password_hash)
-
-
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 

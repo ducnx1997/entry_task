@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.http import JsonResponse
 
-from auth import login_required, log_request
-from ..common import common_response
+from common.auth import login_required, log_request
+from common import common_response
 from ..models import User, Activities
 
 

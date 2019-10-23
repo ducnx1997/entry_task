@@ -3,10 +3,6 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^signup', views.signup, name='signup'),
-    url(r'^complete_signup', views.complete_signup, name='complete_signup'),
-    url(r'^login', views.login, name='login'),
-    url(r'^complete_login$', views.complete_login, name='complete_login'),
     url(r'^user/(?P<target_id>[0-9]+)$', views.get_user_info, name='get_user_info'),
     url(r'^user/(?P<target_id>[0-9]+)/activities$', views.get_user_activities, name='get_user_activities'),
     url(r'^event/(?P<event_id>[0-9]+)$', views.get_event, name='get_event'),
@@ -20,5 +16,4 @@ urlpatterns = [
     url(r'^event/(?P<event_id>[0-9]+)/comments$', views.get_comments, name='get_comments'),
     url(r'^event/(?P<event_id>[0-9]+)/participate$', views.participate_event, name='participate_event'),
     url(r'^event/(?P<event_id>[0-9]+)/participants$', views.get_participants, name='get_participants')
-
 ]

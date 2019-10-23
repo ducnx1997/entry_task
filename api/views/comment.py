@@ -7,8 +7,8 @@ from django.db import models
 from django.http import JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
 
-from auth import login_required, log_request
-from ..common import common_response
+from common.auth import login_required, log_request
+from common import common_response
 from ..models import Event, Comment, Activities
 
 
