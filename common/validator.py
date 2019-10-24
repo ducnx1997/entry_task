@@ -6,20 +6,22 @@ from functools import wraps
 import jsonschema
 import string
 from django.http import JsonResponse
+import constant
 
 from common import common_response
 
 
 def validate_username(username):
-    return isinstance(username, basestring) and 4 < len(username) < 33 and username.isalnum()
+    return isinstance(username, basestring) \
+           and constant.MIN_USERNAME_LENGTH < len(username) < constant.MAX_USERNAME_LENGTH and username.isalnum()
 
 
 def validate_salt(salt):
-    return isinstance(salt, basestring) and len(salt) == 8 and salt.isalnum()
+    return isinstance(salt, basestring) and len(salt) == constant.SALT_LENGTH and salt.isalnum()
 
 
 def validate_password_hash(password_hash):
-    return isinstance(password_hash, basestring) and len(password_hash) == 32 \
+    return isinstance(password_hash, basestring) and len(password_hash) == constant.PASSWORD_HASH_LENGTH \
            and all(x in string.hexdigits for x in password_hash)
 
 
