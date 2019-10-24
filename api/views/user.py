@@ -34,7 +34,7 @@ def get_user_info(request, user, target_id):
 @login_required
 def get_user_activities(request, user, target_id):
     activities = Activities.objects\
-        .filter(user_id=user['id']).order_by('-created_at')\
+        .filter(user_id=target_id).order_by('-created_at')\
         .values('action', 'event_id', 'event_title', 'user_id', 'details', 'created_at')
 
     activities = list(activities)
