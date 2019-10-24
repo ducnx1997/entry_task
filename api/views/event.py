@@ -132,6 +132,7 @@ get_events_form = {
 
 
 @log_request
+@validate_schema(get_events_form)
 @login_required
 def get_events(request, user, page_id=1):
     events = Event.objects
