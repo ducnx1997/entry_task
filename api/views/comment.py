@@ -8,7 +8,8 @@ from django.http import JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
 
 from common.auth import login_required, log_request
-from common import common_response
+from common import common_response, user_action
+from common.validator import validate_schema
 from ..models import Event, Comment, Activities
 
 
@@ -16,15 +17,12 @@ from ..models import Event, Comment, Activities
 @login_required
 def get_comment(request, user, comment_id):
     try:
-        comment_id = int(comment_id)
         comment = Comment.objects.get(id=comment_id)
-    except ValueError:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
     return JsonResponse({
-        'status': 'SUCCESS',
+        'status': common_response.SUCCESS_STATUS,
         'payload': {
             'event_id': comment.event_id,
             'comment_id': comment_id,
@@ -39,10 +37,7 @@ def get_comment(request, user, comment_id):
 @login_required
 def get_comments(request, user, event_id):
     try:
-        event_id = int(event_id)
         event = Event.objects.get(id=event_id)
-    except ValueError:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
@@ -53,7 +48,7 @@ def get_comments(request, user, event_id):
 
     return JsonResponse(
         {
-            'status': 'SUCCESS',
+            'status': common_response.SUCCESS_STATUS,
             'payload': {
                 'message': comments
             }
@@ -61,24 +56,33 @@ def get_comments(request, user, event_id):
     )
 
 
+comment_form = {
+    'type': 'object',
+    'properties': {
+        'body': {'type': 'string'}
+    },
+    'required': ['body']
+}
+
+
+@log_request
+@validate_schema(schema=comment_form)
 @login_required
 def comment_event(request, user, event_id):
     try:
-        event_id = int(event_id)
-        comment_body = str(request.POST['body'])
         event = Event.objects.get(id=event_id)
-    except (ValueError, MultiValueDictKeyError):
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
+
+    cur_time = time.time()
 
     new_comment = Comment.objects.create(
         event_id=event.id,
         user_id=user['id'],
         username=user['username'],
-        body=comment_body,
-        created_at=time.time(),
-        modified_at=time.time()
+        body=request.POST['body'],
+        created_at=cur_time,
+        modified_at=cur_time
     )
 
     Activities.objects.create(
@@ -86,13 +90,13 @@ def comment_event(request, user, event_id):
         event_title=event.title,
         user_id=user['id'],
         details=new_comment.body,
-        action='COMMENT',
-        created_at=time.time(),
-        modified_at=time.time()
+        action=user_action.COMMENT,
+        created_at=cur_time,
+        modified_at=cur_time
     )
 
     return JsonResponse({
-        'status': 'SUCCESS',
+        'status': common_response.SUCCESS_STATUS,
         'payload': {
             'event_id': new_comment.event_id,
             'event_title': event.title,

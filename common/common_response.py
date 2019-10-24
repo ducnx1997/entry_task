@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 
+SUCCESS_STATUS = 'SUCCESS'
+
 INVALID_USERNAME_RESPONSE = {
     'status': 'INVALID_USERNAME'
 }

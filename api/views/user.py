@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.http import JsonResponse
 
-from common.auth import login_required, log_request
 from common import common_response
+from common.auth import login_required, log_request
 from ..models import User, Activities
 
 
@@ -18,7 +18,7 @@ def get_user_info(request, user, target_id):
         return JsonResponse(common_response.USERNAME_NOT_FOUND_RESPONSE)
 
     return JsonResponse({
-        'status': 'SUCCESS',
+        'status': common_response.SUCCESS_STATUS,
         'payload': {
             'user': {
                 'id': user.id,
@@ -43,7 +43,3 @@ def get_user_activities(request, user, target_id):
         'status': 'SUCCESS',
         'payload': activities
     })
-
-
-# def get_user_event(request, user_id):
-#     pass

@@ -6,8 +6,8 @@ import time
 from django.db import models
 from django.http import JsonResponse
 
+from common import common_response, user_action
 from common.auth import login_required, log_request
-from common import common_response
 from ..models import Event, Like, Activities
 
 
@@ -15,10 +15,7 @@ from ..models import Event, Like, Activities
 @login_required
 def get_likes(request, user, event_id):
     try:
-        event_id = int(event_id)
         event = Event.objects.get(id=event_id)
-    except ValueError:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
@@ -29,7 +26,7 @@ def get_likes(request, user, event_id):
 
     return JsonResponse(
         {
-            'status': 'SUCCESS',
+            'status': common_response.SUCCESS_STATUS,
             'payload': {
                 'likes': likes
             }
@@ -41,10 +38,7 @@ def get_likes(request, user, event_id):
 @login_required
 def like_event(request, user, event_id):
     try:
-        event_id = int(event_id)
         event = Event.objects.get(id=event_id)
-    except ValueError:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
@@ -54,25 +48,27 @@ def like_event(request, user, event_id):
             user_id=user['id']
         )
     except models.ObjectDoesNotExist:
+        cur_time = time.time()
+
         like = Like.objects.create(
             event_id=event.id,
             user_id=user['id'],
             username=user['username'],
-            created_at=time.time(),
-            modified_at=time.time()
+            created_at=cur_time,
+            modified_at=cur_time
         )
         Activities.objects.update_or_create(
-            action='LIKE',
+            action=user_action.LIKE,
             event_id=like.event_id,
             event_title=event.title,
             user_id=like.user_id,
             details='',
-            created_at=time.time(),
-            modified_at=time.time()
+            created_at=cur_time,
+            modified_at=cur_time
         )
 
     return JsonResponse({
-        'status': 'SUCCESS',
+        'status': common_response.SUCCESS_STATUS,
         'payload': {
             'event_id': event.id,
             'user_id': like.user_id,

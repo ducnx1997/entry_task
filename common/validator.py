@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 
 from functools import wraps
-from jsonschema import validate, ValidationError
+import jsonschema
 import string
 from django.http import JsonResponse
 
@@ -29,8 +29,8 @@ def validate_schema(schema):
         def wrapper(*args, **kwargs):
             request = args[0]
             try:
-                validate(instance=request.POST, schema=schema)
-            except ValidationError:
+                jsonschema.validate(instance=request.POST, schema=schema)
+            except jsonschema.ValidationError:
                 return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
             return f(*args, **kwargs)
@@ -38,3 +38,4 @@ def validate_schema(schema):
         return wrapper
 
     return decorator
+

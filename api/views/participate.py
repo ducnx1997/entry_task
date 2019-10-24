@@ -7,7 +7,7 @@ from django.db import models
 from django.http import JsonResponse
 
 from common.auth import login_required, log_request
-from common import common_response
+from common import common_response, user_action
 from ..models import Event, Activities, Participation
 
 
@@ -15,10 +15,7 @@ from ..models import Event, Activities, Participation
 @login_required
 def get_participants(request, user, event_id):
     try:
-        event_id = int(event_id)
         event = Event.objects.get(id=event_id)
-    except ValueError:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
@@ -29,7 +26,7 @@ def get_participants(request, user, event_id):
 
     return JsonResponse(
         {
-            'status': 'SUCCESS',
+            'status': common_response.SUCCESS_STATUS,
             'payload': {
                 'participants': participants
             }
@@ -41,10 +38,7 @@ def get_participants(request, user, event_id):
 @login_required
 def participate_event(request, user, event_id):
     try:
-        event_id = int(event_id)
         event = Event.objects.get(id=event_id)
-    except ValueError:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
 
@@ -54,25 +48,26 @@ def participate_event(request, user, event_id):
             user_id=user['id']
         )
     except models.ObjectDoesNotExist:
+        cur_time = time.time()
         participation = Participation.objects.create(
             event_id=event.id,
             user_id=user['id'],
             username=user['username'],
-            created_at=time.time(),
-            modified_at=time.time()
+            created_at=cur_time,
+            modified_at=cur_time
         )
         Activities.objects.update_or_create(
-            action='PARTICIPATION',
+            action=user_action.PARTICIPATE,
             event_id=participation.event_id,
             event_title=event.title,
             user_id=participation.user_id,
             details='',
-            created_at=time.time(),
-            modified_at=time.time()
+            created_at=cur_time,
+            modified_at=cur_time
         )
 
     return JsonResponse({
-        'status': 'SUCCESS',
+        'status': common_response.SUCCESS_STATUS,
         'payload': {
             'event_id': participation.event_id,
             'user_id': participation.user_id,
@@ -80,4 +75,3 @@ def participate_event(request, user, event_id):
             'created_at': participation.created_at
         }
     })
-
