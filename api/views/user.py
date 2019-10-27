@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models
 from django.http import JsonResponse
 
 from common import common_response
 from common.auth import login_required, log_request
-from ..models import User, Activities
+from common.modelmanager import UserManager
 
 
 @log_request
 @login_required
-def get_user_info(request, user, target_id):
-    try:
-        user = User.objects.get(id=target_id)
-    except models.ObjectDoesNotExist:
+def get_user_info(request, user):
+    user = UserManager.get_user_by_id(user_id=user['id'])
+    if not user:
         return JsonResponse(common_response.USERNAME_NOT_FOUND_RESPONSE)
 
     return JsonResponse({
@@ -33,13 +31,16 @@ def get_user_info(request, user, target_id):
 @log_request
 @login_required
 def get_user_activities(request, user, target_id):
-    activities = Activities.objects\
-        .filter(user_id=target_id).order_by('-created_at')\
-        .values('action', 'event_id', 'event_title', 'user_id', 'details', 'created_at')
+    activities = UserManager.get_user_activities(user_id=target_id)
 
-    activities = list(activities)
+    activities = list(activities.values(
+        'action',
+        'event_id',
+        'event_title',
+        'created_at',
+        'details'))
 
     return JsonResponse({
-        'status': 'SUCCESS',
+        'status': common_response.SUCCESS_STATUS,
         'payload': activities
     })

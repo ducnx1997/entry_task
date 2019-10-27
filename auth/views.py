@@ -9,40 +9,23 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import models
 from django.http import JsonResponse
+from hashlib import sha256
+from Crypto.Cipher import AES
 
-import constant
-from api.models import User
-from common import common_response
-from common.auth import log_request
-from common.common_lib import random_session, random_salt
+from common.models import UserTab
+from common import common_response, constant
+from common.auth import log_request, AESCipher
+from common.common_lib import random_session, random_salt, random_verify_code
 from common.validator import validate_schema
 from common.validator import validate_username, validate_password_hash, validate_salt
+
+from common.modelmanager import UserManager
 
 log = logging.getLogger('entry_task')
 
 
-signup_form = {
-    'type': 'object',
-    'properties': {
-        'username': {
-            'type': 'string',
-            'minLength': constant.MIN_USERNAME_LENGTH,
-            'maxLength': constant.MAX_USERNAME_LENGTH
-        },
-        'email': {
-            'type': 'string',
-            'format': 'email'
-        }
-    },
-    'required': ['username', 'email']
-}
-
-
 @log_request
-@validate_schema(schema=signup_form)
 def signup(request):
-    username = request.POST['username']
-    email = request.POST['email']
 
     return JsonResponse({
         'status': common_response.SUCCESS_STATUS,
@@ -81,20 +64,11 @@ complete_signup_form = {
 
 @log_request
 @validate_schema(schema=complete_signup_form)
-def complete_signup(request):
-    username = request.POST['username']
-    password_hash = request.POST['password_hash']
-    salt = request.POST['salt']
-    email = request.POST['email']
-
-    if User.objects.filter(username=username).exists():
-        return JsonResponse(common_response.USERNAME_EXISTS_RESPONSE)
-
-    if User.objects.filter(email=email).exists():
-        return JsonResponse(common_response.EMAIL_USED_RESPONSE)
-
-    # TODO use password_hash from user instead
-    # password_hash = hashlib.md5(username + salt).hexdigest()
+def complete_signup(request, form_data):
+    username = form_data['username']
+    password_hash = form_data['password_hash']
+    salt = form_data['salt']
+    email = form_data['email']
 
     if not validate_username(username):
         return JsonResponse(common_response.INVALID_USERNAME_RESPONSE)
@@ -110,28 +84,33 @@ def complete_signup(request):
     if not validate_salt(salt):
         return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
-    cur_time = time.time()
+    if UserTab.objects.filter(username=username).exists():
+        return JsonResponse(common_response.USERNAME_EXISTS_RESPONSE)
 
-    new_user = User.objects.create(
+    if UserTab.objects.filter(email=email).exists():
+        return JsonResponse(common_response.EMAIL_USED_RESPONSE)
+
+    new_user = UserManager.create_user(
         username=username,
-        password_hash=password_hash,
         email=email,
         salt=salt,
-        created_at=cur_time,
-        modified_at=cur_time
+        password_hash=password_hash
     )
 
-    return JsonResponse({
-        'status': common_response.SUCCESS_STATUS,
-        'payload': {
-            'user': {
-                'id': new_user.id,
-                'username': new_user.username,
-                'email': new_user.email,
-                'created_at': new_user.created_at,
+    if new_user:
+        return JsonResponse({
+            'status': common_response.SUCCESS_STATUS,
+            'payload': {
+                'user': {
+                    'id': new_user.id,
+                    'username': new_user.username,
+                    'email': new_user.email,
+                    'created_at': new_user.created_at,
+                }
             }
-        }
-    })
+        })
+    else:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
 
 login_form = {
@@ -149,18 +128,27 @@ login_form = {
 
 @log_request
 @validate_schema(login_form)
-def login(request):
-    username = request.POST['username']
+def login(request, form_data):
+    username = form_data['username']
 
-    try:
-        user = User.objects.get(username=username)
-    except models.ObjectDoesNotExist:
+    user = UserManager.get_user_by_username(username=username)
+
+    if not user:
         return JsonResponse(common_response.USERNAME_NOT_FOUND_RESPONSE)
+
+    verify_code = random_verify_code()
+
+    cache.set(
+        'code.' + user.username,
+        verify_code,
+        constant.SESSION_TIMEOUT
+    )
 
     return JsonResponse({
         'status': common_response.SUCCESS_STATUS,
         'payload': {
-            'salt': user.salt
+            'salt': user.salt,
+            'verify_code': verify_code
         }
     })
 
@@ -173,7 +161,7 @@ complete_login_form = {
             'minLength': constant.MIN_USERNAME_LENGTH,
             'maxLength': constant.MAX_USERNAME_LENGTH
         },
-        'password_hash': {
+        'encrypted_password': {
             'type': 'string',
             'minLength': constant.PASSWORD_HASH_LENGTH,
             'maxLength': constant.PASSWORD_HASH_LENGTH
@@ -185,14 +173,25 @@ complete_login_form = {
 
 @log_request
 @validate_schema(schema=complete_login_form)
-def complete_login(request):
-    username = request.POST['username']
-    password_hash = request.POST['password_hash']
+def complete_login(request, form_data):
+    username = form_data['username']
+    encrypted_password = form_data['encrypted_password']
+
+    verify_code = cache.get('code.' + username)
+
+    if not verify_code:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
     try:
-        user = User.objects.get(username=username)
+        user = UserTab.objects.get(username=username)
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.USERNAME_NOT_FOUND_RESPONSE)
+
+    cipher = AESCipher(key=sha256(user.password_hash + verify_code).hexdigest())
+    password_hash = cipher.decrypt(encrypted_password)
+
+    # cipher = AES.new(sha256(user.password_hash + verify_code).hexdigest())
+    # password_hash = cipher.decrypt(encrypted_password)
 
     if user.password_hash != password_hash:
         return JsonResponse(common_response.WRONG_PASSWORD_RESPONSE)

@@ -6,9 +6,9 @@ from functools import wraps
 import jsonschema
 import string
 from django.http import JsonResponse
-import constant
+import json
 
-from common import common_response
+from common import common_response, constant
 
 
 def validate_username(username):
@@ -18,6 +18,10 @@ def validate_username(username):
 
 def validate_salt(salt):
     return isinstance(salt, basestring) and len(salt) == constant.SALT_LENGTH and salt.isalnum()
+
+
+def validate_verify_code(verify_code):
+    return isinstance(verify_code, basestring) and len(verify_code) == constant.SALT_LENGTH and verify_code.isalnum()
 
 
 def validate_password_hash(password_hash):
@@ -31,11 +35,12 @@ def validate_schema(schema):
         def wrapper(*args, **kwargs):
             request = args[0]
             try:
-                jsonschema.validate(instance=request.POST, schema=schema)
-            except jsonschema.ValidationError:
+                form_data = json.loads(request.POST.get('form_data'))
+                jsonschema.validate(instance=form_data, schema=schema)
+            except (jsonschema.ValidationError, TypeError, ValueError):
                 return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
-            return f(*args, **kwargs)
+            return f(*args, form_data=form_data, **kwargs)
 
         return wrapper
 

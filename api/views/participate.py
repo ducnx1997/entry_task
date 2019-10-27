@@ -1,28 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import time
-
-from django.db import models
 from django.http import JsonResponse
 
+from common import common_response
 from common.auth import login_required, log_request
-from common import common_response, user_action
-from ..models import Event, Activities, Participation
+from common.modelmanager import ParticipationManager
 
 
 @log_request
 @login_required
-def get_participants(request, user, event_id):
-    try:
-        event = Event.objects.get(id=event_id)
-    except models.ObjectDoesNotExist:
-        return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
+def get_participants(request, user, event_id, page=1):
+    page = int(page)
+    participants = ParticipationManager.get_participants(event_id=event_id, page=page)
 
-    participants = Participation.objects.filter(event_id=event_id)\
-        .values('user_id', 'created_at', 'username')
-
-    participants = list(participants)
+    participants = list(participants.values('user_id', 'username', 'created_at'))
 
     return JsonResponse(
         {
@@ -37,34 +29,10 @@ def get_participants(request, user, event_id):
 @log_request
 @login_required
 def participate_event(request, user, event_id):
-    try:
-        event = Event.objects.get(id=event_id)
-    except models.ObjectDoesNotExist:
-        return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
-
-    try:
-        participation = Participation.objects.get(
-            event_id=event_id,
-            user_id=user['id']
-        )
-    except models.ObjectDoesNotExist:
-        cur_time = time.time()
-        participation = Participation.objects.create(
-            event_id=event.id,
-            user_id=user['id'],
-            username=user['username'],
-            created_at=cur_time,
-            modified_at=cur_time
-        )
-        Activities.objects.update_or_create(
-            action=user_action.PARTICIPATE,
-            event_id=participation.event_id,
-            event_title=event.title,
-            user_id=participation.user_id,
-            details='',
-            created_at=cur_time,
-            modified_at=cur_time
-        )
+    participation = ParticipationManager.create_participation(
+        user_id=user['id'],
+        username=user['username'],
+        event_id=event_id)
 
     return JsonResponse({
         'status': common_response.SUCCESS_STATUS,

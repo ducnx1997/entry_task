@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 
-import constant
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -35,6 +34,7 @@ ALLOWED_HOSTS = ['192.168.33.10', 'localhost']
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'auth.apps.AuthConfig',
+    'admin.apps.AdminConfig',
     # 'django.contrib.admin',
     # 'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -204,7 +204,6 @@ CACHES = {
 }
 
 # MEDIA
-MEDIA_ROOT = constant.MEDIA_ROOT
-
+MEDIA_ROOT = './images'
 
 

@@ -30,5 +30,9 @@ def random_salt():
     return random_alnum(8)
 
 
+def random_verify_code():
+    return random_alnum(8)
+
+
 def random_session():
     return random_alnum(16)

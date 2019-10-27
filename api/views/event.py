@@ -2,110 +2,26 @@
 from __future__ import unicode_literals
 
 import logging
-import time
 
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-from django.core.paginator import Paginator
 from django.db import models
 from django.http import JsonResponse
 
-import constant
-from common import common_response
+from common import common_response, constant
 from common.auth import login_required, log_request
 from common.validator import validate_schema
-from ..models import Event, User, EventImage
+from common.models import EventTab, EventImageMappingTab
+from common.modelmanager import EventManager
 
 log = logging.getLogger('entry_task')
-
-create_event_form = {
-    'type': 'object',
-    'properties': {
-        'title': {
-            'type': 'string',
-            'minLength': 1,
-            'maxLength': constant.MAX_EVENT_TITLE_LENGTH
-        },
-        'description': {'type': 'string'},
-        'event_datetime': {
-            'type': 'string',
-            "pattern": r'^\d+$'
-        },
-        'tag': {
-            'type': 'string',
-            'minLength': 1,
-            'maxLength': constant.MAX_TAG_LENGTH
-        }
-    },
-    'required': ['title', 'description', 'event_datetime', 'tag']
-}
-
-
-@log_request
-@validate_schema(schema=create_event_form)
-@login_required
-def create_event(request, user):
-    user = User.objects.get(id=user['id'])
-    if not user.is_admin:
-        return JsonResponse(common_response.NOT_AUTHORIZED)
-
-    title = request.POST['title']
-    description = request.POST['description']
-    event_datetime = request.POST['event_datetime']
-    tag = request.POST['tag']
-    files = request.FILES.getlist('img')
-
-    cur_time = time.time()
-
-    new_event = Event.objects.create(
-        title=title,
-        description=description,
-        event_datetime=event_datetime,
-        tag=tag,
-        created_at=cur_time,
-        modified_at=cur_time
-    )
-
-    event_image_paths = []
-
-    for i in range(len(files)):
-        if files[i].content_type == 'image/jpeg':
-            image_path = str(str(int(new_event.id)) + '_' + str(i) + '.jpeg')
-
-            default_storage.save(image_path, ContentFile(files[i].read()))
-
-            EventImage.objects.create(
-                event_id=new_event.id,
-                image_path=image_path,
-                created_at=cur_time,
-                modified_at=cur_time
-            )
-            event_image_paths.append(image_path)
-
-    return JsonResponse({
-        'status': common_response.SUCCESS_STATUS,
-        'payload': {
-            'event': {
-                'id': new_event.id,
-                'title': new_event.title,
-                'description': new_event.description,
-                'event_datetime': new_event.event_datetime,
-                'tag': new_event.tag,
-                'images': event_image_paths
-            }
-        }
-    })
 
 
 @log_request
 @login_required
 def get_event(request, user, event_id):
-    try:
-        event = Event.objects.get(id=event_id)
-    except models.ObjectDoesNotExist:
+    event = EventManager.get_event_by_id(event_id)
+    if not event:
         return JsonResponse(common_response.EVENT_NOT_FOUND_RESPONSE)
-
-    images = list(EventImage.objects.filter(event_id=event.id).values('image_path'))
+    images = list(EventManager.get_event_images(event_id=event_id).values('image_path'))
 
     return JsonResponse({
         'status': common_response.SUCCESS_STATUS,
@@ -138,31 +54,30 @@ get_events_form = {
 @log_request
 @validate_schema(get_events_form)
 @login_required
-def get_events(request, user, page_id=1):
-    events = Event.objects
+def get_events(request, user, form_data, page=1):
+    tag = form_data.get('tag')
+    start_date = form_data.get('start_date')
+    end_date = form_data.get('end_date')
 
-    if 'tag' in request.POST:
-        events = events.filter(tag=request.POST.get('tag'))
-    if 'start_date' in request.POST and 'end_date' in request.POST:
+    if start_date and end_date:
         start_date = int(request.POST.get('end_date'))
         end_date = int(request.POST.get('start_date'))
         if end_date - start_date > constant.MAX_EVENT_SEARCH_TIME_RANGE:
             return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
-        events = events.filter(
-            event_datetime__gte=start_date,
-            eventevent_datetime__lte=end_date)
-    elif 'start_date' in request.POST or 'end_date' in request.POST:
-        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
-    events = events.order_by('-event_datetime')
-    events = Paginator(events, constant.NUM_OF_EVENTS_PER_PAGE)
+    events = EventManager.get_events(
+        tag=tag,
+        start_date=start_date,
+        end_date=end_date,
+        page=page
+    )
 
-    if page_id > events.num_pages:
-        page_id = 1
-
-    events = events.page(page_id).object_list.values('id', 'title', 'event_datetime')
-
-    events = list(events)
+    events = events.values(
+        'title',
+        'description',
+        'event_datetime',
+        'tag',
+    )
 
     return JsonResponse({
         'status': common_response.SUCCESS_STATUS,
