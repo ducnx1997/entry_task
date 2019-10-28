@@ -35,7 +35,7 @@
             formData.append('form_data', JSON.stringify(obj));
 
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://localhost:8000/admin/create_event");
+            xhr.open("POST", "http://localhost/admin/create_event");
             xhr.send(formData);
 
             xhr.onreadystatechange = function () {
