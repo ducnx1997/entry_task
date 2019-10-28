@@ -15,5 +15,6 @@ urlpatterns = [
     url(r'^event/(?P<event_id>[0-9]+)/comments$', views.get_comments),
     url(r'^event/(?P<event_id>[0-9]+)/comments/page/(?P<page>[0-9]+)$', views.get_comments),
     url(r'^event/(?P<event_id>[0-9]+)/participate$', views.participate_event),
-    url(r'^event/(?P<event_id>[0-9]+)/participants$', views.get_participants)
+    url(r'^event/(?P<event_id>[0-9]+)/participants$', views.get_participants),
+    url(r'^image$', views.get_image)
 ]

@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-
-from functools import wraps
-import jsonschema
-import string
-from django.http import JsonResponse
 import json
+import logging
+import string
+from functools import wraps
+
+import jsonschema
+from django.http import JsonResponse
+
+log = logging.getLogger('entry_task')
 
 from common import common_response, constant
 
@@ -38,7 +41,7 @@ def validate_schema(schema):
                 form_data = json.loads(request.POST.get('form_data'))
                 jsonschema.validate(instance=form_data, schema=schema)
             except (jsonschema.ValidationError, TypeError, ValueError) as e:
-                print(e)
+                log.info(e)
                 return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
             return f(*args, form_data=form_data, **kwargs)

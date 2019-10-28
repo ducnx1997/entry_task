@@ -26,7 +26,7 @@ create_event_form = {
         'event_datetime': {
             'type': 'integer',
             'minimum': 0,
-            'exclusiveMaximum': 999999999
+            'exclusiveMaximum': 9999999999
         },
         'tag': {
             'type': 'string',
