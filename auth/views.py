@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import base64
 import logging
-import time
+from hashlib import sha256
 
+from Crypto.Cipher import AES
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import models
 from django.http import JsonResponse
-from hashlib import sha256
-from Crypto.Cipher import AES
 
-from common.models import UserTab
 from common import common_response, constant
-from common.auth import log_request, AESCipher
+from common.auth import log_request
 from common.common_lib import random_session, random_salt, random_verify_code
+from common.modelmanager import UserManager
+from common.models import UserTab
 from common.validator import validate_schema
 from common.validator import validate_username, validate_password_hash, validate_salt
-
-from common.modelmanager import UserManager
 
 log = logging.getLogger('entry_task')
 
@@ -163,17 +162,18 @@ complete_login_form = {
         },
         'encrypted_password': {
             'type': 'string',
-            'minLength': constant.PASSWORD_HASH_LENGTH,
-            'maxLength': constant.PASSWORD_HASH_LENGTH
+            'minLength': constant.ENCRYPTED_PASSWORD_LENGTH,
+            'maxLength': constant.ENCRYPTED_PASSWORD_LENGTH
         },
     },
-    'required': ['username', 'password_hash']
+    'required': ['username', 'encrypted_password']
 }
 
 
 @log_request
 @validate_schema(schema=complete_login_form)
 def complete_login(request, form_data):
+    print(1)
     username = form_data['username']
     encrypted_password = form_data['encrypted_password']
 
@@ -187,11 +187,14 @@ def complete_login(request, form_data):
     except models.ObjectDoesNotExist:
         return JsonResponse(common_response.USERNAME_NOT_FOUND_RESPONSE)
 
-    cipher = AESCipher(key=sha256(user.password_hash + verify_code).hexdigest())
-    password_hash = cipher.decrypt(encrypted_password)
-
-    # cipher = AES.new(sha256(user.password_hash + verify_code).hexdigest())
+    # cipher = AESCipher(key=sha256(user.password_hash + verify_code).hexdigest())
     # password_hash = cipher.decrypt(encrypted_password)
+
+    cipher = AES.new(sha256(user.password_hash + verify_code).digest())
+    try:
+        password_hash = cipher.decrypt(base64.b64decode(encrypted_password))
+    except ValueError:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
     if user.password_hash != password_hash:
         return JsonResponse(common_response.WRONG_PASSWORD_RESPONSE)
