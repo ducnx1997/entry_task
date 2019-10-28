@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import logging
 
 from django.http import JsonResponse
+from django.template.loader import get_template
+from django.template.response import TemplateResponse
 
 from common import common_response, constant
 from common.modelmanager import EventManager, UserManager
@@ -64,3 +66,8 @@ def create_event(request, user, form_data):
             }
         }
     })
+
+
+def get_login(request):
+
+    return TemplateResponse(request, get_template('login.html'), {})

@@ -37,7 +37,8 @@ def validate_schema(schema):
             try:
                 form_data = json.loads(request.POST.get('form_data'))
                 jsonschema.validate(instance=form_data, schema=schema)
-            except (jsonschema.ValidationError, TypeError, ValueError):
+            except (jsonschema.ValidationError, TypeError, ValueError) as e:
+                print(e)
                 return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
 
             return f(*args, form_data=form_data, **kwargs)

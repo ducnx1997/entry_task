@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/sha256.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/mode-ecb.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/pad-nopadding.js"></script>
+
+    <script>
+        function createPasswordHash(password, salt) {
+            let hashPassword = CryptoJS.SHA256(CryptoJS.SHA256(password) + salt);
+            return hashPassword.toString();
+        }
+
+        function createAESKey(passwordHash, verify_code) {
+            return CryptoJS.SHA256(passwordHash + verify_code);
+        }
+
+        /**
+         * @return {string}
+         */
+        function AESEncrypt(data, key) {
+            return CryptoJS.AES.encrypt(data, key,
+                {padding: CryptoJS.pad.NoPadding, mode: CryptoJS.mode.ECB}).ciphertext.toString(CryptoJS.enc.Base64);
+        }
+
+
+        function onSubmit(form) {
+            let arr = $(form).serializeArray();
+            let obj = {};
+            for (let i = 0; i < arr.length; ++i) {
+                obj[arr[i]['name']] = arr[i]['value']
+            }
+
+            let formData = new FormData();
+            formData.append('form_data', JSON.stringify(obj));
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:8000/auth/login");
+            xhr.send(formData);
+            let xhr2 = new XMLHttpRequest();
+            xhr2.open("POST", "http://localhost:8000/auth/complete_login");
+
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    console.log(this.getResponseHeader('Set-Cookie'));
+                    let res = JSON.parse(this.responseText);
+                    console.log(res);
+                    let passwordHash = createPasswordHash(obj['password'], res['payload']['salt']);
+                    let key = createAESKey(passwordHash, res['payload']['verify_code']);
+                    let encrypted = AESEncrypt(passwordHash, key);
+                    console.log(encrypted);
+
+
+
+                    let formData2 = new FormData();
+                    obj = {
+                        'encrypted_password': encrypted,
+                        'username': obj['username']
+                    };
+                    formData2.append('form_data', JSON.stringify(obj));
+                    xhr2.send(formData2);
+
+
+                }
+            };
+            xhr2.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    let res = JSON.parse(this.responseText);
+                    console.log(res);
+                }
+            };
+
+
+            return false;
+
+        }
+    </script>
+</head>
+
+<body>
+
+<h2>Login</h2>
+
+<form onsubmit="return onSubmit(this)">
+  Username:<br>
+    <label>
+        <input type="text" name="username" value="ducnxx1">
+    </label>
+    <br>
+  Password:<br>
+    <label>
+        <input type="password" name="password" value="123456">
+    </label>
+    <br><br>
+  <input type="submit" value="Submit">
+</form>
+
+
+</body>
+
+</html>

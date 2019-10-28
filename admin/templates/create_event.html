@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        function toTimestamp(strDate) {
+            let datum = Date.parse(strDate);
+            return datum / 1000;
+        }
+
+
+        function onSubmit(form) {
+            console.log(1111111111111);
+            let arr = $(form).serializeArray();
+            let obj = {};
+            for (let i = 0; i < arr.length; ++i) {
+                obj[arr[i]['name']] = arr[i]['value']
+            }
+            obj['event_datetime'] = toTimestamp(obj['event_datetime']);
+            console.log(obj);
+
+            let files = document.getElementById('files');
+
+            console.log(files.files.length);
+
+
+            let formData = new FormData();
+            formData.append('form_data', JSON.stringify(obj));
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:8000/admin/create_event");
+            xhr.send(formData);
+
+            xhr.onreadystatechange = function () {
+                if (this.readyState === 4 && this.status === 200) {
+                    let res = JSON.parse(this.responseText);
+                    console.log(res);
+                }
+            };
+
+
+
+            return false;
+        }
+    </script>
+</head>
+
+
+
+<body>
+    <form onsubmit="return onSubmit(this)">
+      Title:<br>
+        <label>
+            <input type="text" name="title">
+        </label>
+        <br>
+      Description:<br>
+        <label>
+            <input type="text" name="description">
+        </label>
+        <br>
+      Event datetime:<br>
+        <label>
+            <input type="datetime-local" name="event_datetime">
+        </label>
+        <br>
+      Tag:<br>
+        <label>
+            <input type="text" name="tag">
+        </label>
+        <br>
+      Images:<br>
+        <label>
+            <input type="file" id="files" name="files" multiple>
+        </label>
+        <br><br>
+      <input type="submit" value="Submit">
+    </form>
+</body>
+
+</html>
