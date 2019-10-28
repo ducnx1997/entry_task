@@ -30,8 +30,8 @@ def get_user_info(request, user):
 
 @log_request
 @login_required
-def get_user_activities(request, user, target_id):
-    activities = UserManager.get_user_activities(user_id=target_id)
+def get_user_activities(request, user, target_id, page=1):
+    activities = UserManager.get_user_activities(user_id=target_id, page=int(page))
 
     activities = list(activities.values(
         'action',

@@ -38,12 +38,15 @@ def like_event(request, user, event_id):
         event_id=event_id
     )
 
-    return JsonResponse({
-        'status': common_response.SUCCESS_STATUS,
-        'payload': {
-            'event_id': new_like.event_id,
-            'user_id': new_like.user_id,
-            'username': new_like.username,
-            'created_at': new_like.created_at
-        }
-    })
+    if new_like:
+        return JsonResponse({
+            'status': common_response.SUCCESS_STATUS,
+            'payload': {
+                'event_id': new_like.event_id,
+                'user_id': new_like.user_id,
+                'username': new_like.username,
+                'created_at': new_like.created_at
+            }
+        })
+    else:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)

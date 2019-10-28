@@ -34,12 +34,16 @@ def participate_event(request, user, event_id):
         username=user['username'],
         event_id=event_id)
 
-    return JsonResponse({
-        'status': common_response.SUCCESS_STATUS,
-        'payload': {
-            'event_id': participation.event_id,
-            'user_id': participation.user_id,
-            'username': participation.username,
-            'created_at': participation.created_at
-        }
-    })
+    if participation:
+        return JsonResponse({
+            'status': common_response.SUCCESS_STATUS,
+            'payload': {
+                'event_id': participation.event_id,
+                'user_id': participation.user_id,
+                'username': participation.username,
+                'created_at': participation.created_at
+            }
+        })
+    else:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
+

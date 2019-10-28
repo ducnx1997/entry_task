@@ -37,10 +37,10 @@
             let formData = new FormData();
             formData.append('form_data', JSON.stringify(obj));
             let xhr = new XMLHttpRequest();
-            xhr.open("POST", "http://localhost/auth/login");
+            xhr.open("POST", "http://192.168.33.10/auth/login");
             xhr.send(formData);
             let xhr2 = new XMLHttpRequest();
-            xhr2.open("POST", "http://localhost/auth/complete_login");
+            xhr2.open("POST", "http://192.168.33.10/auth/complete_login");
 
 
             xhr.onreadystatechange = function () {

@@ -49,13 +49,16 @@ def comment_event(request, user, form_data, event_id):
         body=form_data['body']
     )
 
-    return JsonResponse({
-        'status': common_response.SUCCESS_STATUS,
-        'payload': {
-            'event_id': new_comment.event_id,
-            'user_id': new_comment.user_id,
-            'username': new_comment.username,
-            'body': new_comment.body,
-            'created_at': new_comment.created_at
-        }
-    })
+    if new_comment:
+        return JsonResponse({
+            'status': common_response.SUCCESS_STATUS,
+            'payload': {
+                'event_id': new_comment.event_id,
+                'user_id': new_comment.user_id,
+                'username': new_comment.username,
+                'body': new_comment.body,
+                'created_at': new_comment.created_at
+            }
+        })
+    else:
+        return JsonResponse(common_response.INVALID_REQUEST_RESPONSE)
