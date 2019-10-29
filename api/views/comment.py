@@ -23,7 +23,7 @@ def get_comments(request, user, event_id, page=1):
         {
             'status': common_response.SUCCESS_STATUS,
             'payload': {
-                'message': comments
+                'comments': comments
             }
         }
     )
