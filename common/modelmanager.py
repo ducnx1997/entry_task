@@ -189,7 +189,7 @@ class LikeManager(object):
     def get_likes(event_id, page=1, per_page=constant.NUM_OF_EVENTS_PER_PAGE):
         likes = LikeTab.objects.filter(event_id=event_id).order_by('-created_at')
         likes = Paginator(likes, per_page)
-        print(likes)
+
         if page > likes.num_pages:
             page = 1
 
@@ -245,8 +245,6 @@ class CommentManager(object):
         if page > comments.num_pages:
             page = 1
 
-        print(comments.num_pages)
-        print(page)
         return comments.page(page).object_list
 
     @staticmethod

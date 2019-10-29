@@ -173,7 +173,6 @@ complete_login_form = {
 @log_request
 @validate_schema(schema=complete_login_form)
 def complete_login(request, form_data):
-    print(1)
     username = form_data['username']
     encrypted_password = form_data['encrypted_password']
 
