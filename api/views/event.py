@@ -3,14 +3,17 @@ from __future__ import unicode_literals
 
 import logging
 
+from PIL import Image
 from django.db import models
-from django.http import JsonResponse
+import os
+from django.http import JsonResponse, HttpResponse
 
 from common import common_response, constant
 from common.auth import login_required, log_request
 from common.validator import validate_schema
 from common.models import EventTab, EventImageMappingTab
 from common.modelmanager import EventManager
+from django.conf import settings
 
 log = logging.getLogger('entry_task')
 
@@ -45,8 +48,16 @@ get_events_form = {
             'minLength': 1,
             'maxLength': constant.MAX_TAG_LENGTH
         },
-        'start_date': {'type': 'string', "pattern": r'^\d+$'},
-        'end_date': {'type': 'string', "pattern": r'^\d+$'}
+        'start_date': {
+            'type': 'integer',
+            'minimum': 0,
+            'exclusiveMaximum': 999999999
+        },
+        'end_date': {
+            'type': 'integer',
+            'minimum': 0,
+            'exclusiveMaximum': 999999999
+        }
     }
 }
 
@@ -83,3 +94,26 @@ def get_events(request, user, form_data, page=1):
         'status': common_response.SUCCESS_STATUS,
         'payload': events
     })
+
+
+get_image_form = {
+    'type': 'object',
+    'properties': {
+        'path': {'type': 'string'}
+    },
+    'required': ['path']
+}
+
+
+@log_request
+@validate_schema(get_events_form)
+@login_required
+def get_image(request, user, data_form):
+    try:
+        with open(os.path.join(settings.MEDIA_ROOT, data_form['path']), 'rb') as f:
+            return HttpResponse(f.read(), content_type='image/jpeg')
+    except IOError:
+        red = Image.new('RGBA', (1, 1), (255, 0, 0, 0))
+        response = HttpResponse(content_type="image/jpeg")
+        red.save(response, "JPEG")
+        return response

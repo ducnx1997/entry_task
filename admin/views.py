@@ -4,12 +4,11 @@ from __future__ import unicode_literals
 import logging
 
 from django.http import JsonResponse
-from django.template.loader import get_template
-from django.template.response import TemplateResponse
+from django.shortcuts import render_to_response
 
 from common import common_response, constant
-from common.modelmanager import EventManager, UserManager
 from common.auth import login_required, log_request
+from common.modelmanager import EventManager, UserManager
 from common.validator import validate_schema
 
 log = logging.getLogger('entry_task')
@@ -25,7 +24,9 @@ create_event_form = {
         },
         'description': {'type': 'string'},
         'event_datetime': {
-            'type': 'integer'
+            'type': 'integer',
+            'minimum': 0,
+            'exclusiveMaximum': 999999999
         },
         'tag': {
             'type': 'string',
@@ -68,6 +69,16 @@ def create_event(request, user, form_data):
     })
 
 
-def get_login(request):
+@log_request
+def login_template(request):
+    return render_to_response('login.html')
 
-    return TemplateResponse(request, get_template('login.html'), {})
+
+@log_request
+@login_required
+def create_event_template(request, user):
+    user = UserManager.get_user_by_id(user['id'])
+    if not user.is_admin:
+        return JsonResponse(common_response.NOT_AUTHORIZED)
+    return render_to_response('create_event.html')
+

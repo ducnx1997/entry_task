@@ -62,6 +62,7 @@ def log_request(view_function):
     @wraps(view_function)
     def wrap(*args, **kwargs):
         log.info('{}|COOKIES:{}|POST:{}'.format(args[0], args[0].COOKIES, args[0].POST))
+        log.info('FILES:{}'.format(args[0].FILES.getlist('img')))
         return view_function(*args, **kwargs)
 
     return wrap

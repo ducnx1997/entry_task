@@ -12,7 +12,6 @@
 
 
         function onSubmit(form) {
-            console.log(1111111111111);
             let arr = $(form).serializeArray();
             let obj = {};
             for (let i = 0; i < arr.length; ++i) {
@@ -24,10 +23,17 @@
             let files = document.getElementById('files');
 
             console.log(files.files.length);
-
-
             let formData = new FormData();
+
+            for (let i = 0; i < files.files.length; ++i) {
+                console.log(files.files[i]);
+                formData.append('img', files.files[i], files.files[i].name);
+            }
+
+            console.log(formData);
+
             formData.append('form_data', JSON.stringify(obj));
+
             let xhr = new XMLHttpRequest();
             xhr.open("POST", "http://localhost:8000/admin/create_event");
             xhr.send(formData);
@@ -52,12 +58,12 @@
     <form onsubmit="return onSubmit(this)">
       Title:<br>
         <label>
-            <input type="text" name="title">
+            <input type="text" name="title" value="title">
         </label>
         <br>
       Description:<br>
         <label>
-            <input type="text" name="description">
+            <input type="text" name="description" value="description">
         </label>
         <br>
       Event datetime:<br>
@@ -67,12 +73,12 @@
         <br>
       Tag:<br>
         <label>
-            <input type="text" name="tag">
+            <input type="text" name="tag" value="tag">
         </label>
         <br>
       Images:<br>
         <label>
-            <input type="file" id="files" name="files" multiple>
+            <input type="file" id="files" name="img" multiple>
         </label>
         <br><br>
       <input type="submit" value="Submit">
