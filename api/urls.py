@@ -5,6 +5,7 @@ import views
 urlpatterns = [
     url(r'^user$', views.get_user_info),
     url(r'^user/(?P<target_id>[0-9]+)/activities$', views.get_user_activities),
+    url(r'^user/(?P<target_id>[0-9]+)/activities/page/(?P<page>[0-9]+)$', views.get_user_activities),
     url(r'^event/(?P<event_id>[0-9]+)$', views.get_event),
     url(r'^events$', views.get_events),
     url(r'^events/page/(?P<page>[0-9]+)$', views.get_events),
@@ -16,5 +17,6 @@ urlpatterns = [
     url(r'^event/(?P<event_id>[0-9]+)/comments/page/(?P<page>[0-9]+)$', views.get_comments),
     url(r'^event/(?P<event_id>[0-9]+)/participate$', views.participate_event),
     url(r'^event/(?P<event_id>[0-9]+)/participants$', views.get_participants),
+    url(r'^event/(?P<event_id>[0-9]+)/participants/page/(?P<page>[0-9]+)$', views.get_participants),
     url(r'^image$', views.get_image)
 ]

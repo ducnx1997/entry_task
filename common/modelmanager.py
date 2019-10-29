@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import logging
 import time
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,6 +13,8 @@ from django.db import IntegrityError
 from common import constant
 from common import user_action
 from common.models import UserTab, ActivitiesTab, ParticipationTab, EventTab, EventImageMappingTab, LikeTab, CommentTab
+
+log = logging.getLogger('entry_task')
 
 
 class UserManager(object):
@@ -227,7 +230,7 @@ class LikeManager(object):
                     modified_at=cur_time
                 )
             except IntegrityError:
-                like = LikeTab.objects.create(
+                like = LikeTab.objects.get(
                     event_id=event_id,
                     user_id=user_id
                 )
