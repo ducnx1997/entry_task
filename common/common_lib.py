@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import random
-import string
+import os
 
 from django.core.cache import cache
 
@@ -19,11 +18,7 @@ ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
 def random_alnum(length):
-    s = []
-    for i in range(length):
-        s.append(random.choice(ALPHABET))
-
-    return "".join(s)
+    return os.urandom(length / 2).decode('hex')
 
 
 def random_salt():
