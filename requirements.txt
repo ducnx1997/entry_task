@@ -31,7 +31,7 @@ pylint==1.9.5
 pyrsistent==0.15.4
 python-memcached==1.59
 pytz==2019.3
-PyYAML==5.1.2
+PyYAML==5.4
 requests==2.22.0
 scandir==1.10.0
 shellescape==3.4.1
