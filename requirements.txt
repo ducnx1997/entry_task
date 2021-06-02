@@ -37,6 +37,6 @@ scandir==1.10.0
 shellescape==3.4.1
 singledispatch==3.4.0.3
 six==1.12.0
-urllib3==1.25.6
+urllib3==1.26.5
 wrapt==1.11.2
 zipp==0.6.0
